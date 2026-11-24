@@ -118,6 +118,12 @@ body.locked #lg{display:flex}
 .ck{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:16px;cursor:pointer}
 .ck input{width:20px;height:20px;margin:0;padding:0;accent-color:var(--ac);flex:none}
 .ck:has(input:checked){border-color:var(--ac);background:color-mix(in srgb,var(--ac) 12%,var(--bg))}
+.ib{position:relative}
+.bdg{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center;padding:0 4px}
+.rit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rit .btn{padding:8px 12px;font-size:14px;flex:none}
+.rit.late .ad{color:var(--red)}
+.rsub{margin:14px 0 8px;font-size:14px;color:var(--tx2);font-weight:600}
 </style>
 </head>
 <body class="locked">
@@ -135,7 +141,7 @@ body.locked #lg{display:flex}
 </div></div>
 <div class="wrap">
 <header>
- <div class="top"><h1>Catatan Hajatan</h1><div class="hb"><button class="ib" id="gear" title="Pengaturan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button></div></div>
+ <div class="top"><h1>Catatan Hajatan</h1><div class="hb"><button class="ib" id="bell" title="Pengingat"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 003.4 0"/></svg><span class="bdg" id="bdg" style="display:none"></span></button><button class="ib" id="gear" title="Pengaturan"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1.1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.5-1.1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg></button></div></div>
  <div class="evrow"><div class="dd"><button class="chip evc" id="evb"><span id="evl">Acara</span><svg viewBox="0 0 24 24" class="cv"><path d="M6 9l6 6 6-6"/></svg></button><div class="menu" id="evm"></div></div></div>
  <div class="seg" id="seg"></div>
  <div class="search"><span><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span><input id="q" type="search" placeholder="Ketik nama..." autocomplete="off"></div>
@@ -188,6 +194,15 @@ body.locked #lg{display:flex}
  <div class="acts" style="margin-top:14px"><button class="btn" id="stc" title="Selesai" aria-label="Selesai"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>
 </div></div>
 <div class="modal" id="xm"><div class="sheet" style="max-width:340px"><h2>Ekspor data</h2><input id="xn" placeholder="Nama file" autocomplete="off"><div class="acts"><button class="btn g" id="xc">Batal</button><button class="btn" id="xs">Ekspor</button></div></div></div>
+<div class="modal" id="rmd"><div class="sheet">
+ <h2>Pengingat Kembalikan</h2>
+ <div id="rl"></div>
+ <div class="rsub">Tambah pengingat</div>
+ <input id="rn" list="rdl" placeholder="Nama yang dikembalikan" autocomplete="off"><datalist id="rdl"></datalist>
+ <input id="rv" inputmode="numeric" placeholder="Nominal (opsional)" autocomplete="off">
+ <div style="display:flex;gap:8px"><input type="date" id="rd" style="flex:1.4"><input type="time" id="rt" value="08:00" style="flex:1"></div>
+ <div class="acts"><button class="btn g" id="rc">Tutup</button><button class="btn" id="rs">Simpan</button></div>
+</div></div>
 <div class="modal" id="cf"><div class="sheet cfs">
  <div class="cfi d" id="cfi"></div>
  <h2 id="cft"></h2><p id="cfm"></p>
@@ -375,9 +390,42 @@ async function delEv(id){const E=events.find(x=>x.id===id);if(!E)return false;
  events=events.filter(x=>x.id!==id);data=data.filter(d=>d.e!==id);if(curE==id)curE=events[0].id;save();saveE();try{localStorage.setItem("hajat_cur",curE)}catch(x){}tab=tabs()[0];page=0;render();return true}
 $("edl").onclick=async()=>{if(await delEv(evId))ecl()};
 $("lr").onclick=async()=>{if(await ask({t:"Reset akun?",m:"Semua data tamu di perangkat ini akan dihapus permanen. Ketik RESET untuk melanjutkan.",y:"Hapus semua",need:"RESET"})){try{localStorage.removeItem(AK);localStorage.removeItem(KEY)}catch(e){}acc=null;data=[];$("lu").value="";lock()}};
+const RK="hajat_rem";let rems=[];try{rems=JSON.parse(localStorage.getItem(RK)||"[]")}catch(e){}if(!Array.isArray(rems))rems=[];
+const saveR=()=>{try{localStorage.setItem(RK,JSON.stringify(rems))}catch(e){}};
+const NAT=()=>{const C=window.Capacitor;return!!(C&&C.isNativePlatform&&C.isNativePlatform())};
+const nat=(p,m,o)=>{const C=window.Capacitor;return C.nativePromise?C.nativePromise(p,m,o):C.Plugins[p][m](o)};
+const fdt=t=>new Date(t).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+function rview(){
+ rems.sort((a,b)=>a.t-b.t);
+ $("rl").innerHTML=rems.length?rems.map(r=>'<div class="rit'+(r.t<=Date.now()?" late":"")+'"><div style="min-width:0"><div class="nm">'+esc(r.n)+'</div><div class="ad">'+(r.m?rp(r.m)+" · ":"")+fdt(r.t)+'</div></div><button class="btn g" data-rx="'+r.id+'">Selesai</button></div>').join(""):'<div class="hint" style="margin:0 2px 6px">Belum ada pengingat.</div>';
+ $("bdg").style.display=rems.length?"flex":"none";$("bdg").textContent=rems.length;
+ $("rdl").innerHTML=[...new Set(data.filter(d=>d.e===ev().id).map(d=>d.n))].map(n=>'<option value="'+esc(n)+'">').join("")}
+$("bell").onclick=()=>{rview();$("rmd").classList.add("on")};
+$("rc").onclick=()=>$("rmd").classList.remove("on");
+$("rmd").onclick=e=>{if(e.target.id==="rmd")$("rmd").classList.remove("on")};
+$("rv").oninput=()=>{$("rv").value=fmt($("rv").value.replace(/\D/g,""))};
+$("rn").oninput=()=>{if($("rv").value)return;const n=$("rn").value.trim().toLowerCase(),g=data.find(d=>d.e===ev().id&&d.n.toLowerCase()===n);if(g&&g.m)$("rv").value=fmt(g.m)};
+const rinfo=(t,m)=>ask({t,m,y:"OK",d:false,info:true});
+$("rs").onclick=async()=>{
+ const n=$("rn").value.trim(),d=$("rd").value,tm=$("rt").value||"08:00";
+ if(!n){$("rn").focus();return}
+ if(!d){$("rd").focus();return}
+ const t=new Date(d+"T"+tm).getTime();
+ if(!(t>Date.now())){await rinfo("Waktu sudah lewat","Pilih tanggal dan jam yang akan datang.");return}
+ const m=parseInt(($("rv").value||"0").replace(/\D/g,""))||0;
+ let id=Math.floor(Date.now()/1000);while(rems.some(r=>r.id===id))id++;
+ if(NAT()){try{
+  const p=await nat("LocalNotifications","requestPermissions");
+  if(p.display!=="granted"){await rinfo("Izin notifikasi ditolak","Aktifkan izin notifikasi untuk aplikasi ini di pengaturan HP.");return}
+  await nat("LocalNotifications","schedule",{notifications:[{id,title:"Waktunya kembalikan buwuhan",body:n+(m?" · "+rp(m):""),schedule:{at:new Date(t).toISOString(),allowWhileIdle:true}}]})
+ }catch(e){await rinfo("Gagal mengatur notifikasi",String(e&&e.message||e));return}}
+ rems.push({id,n,m,t});saveR();$("rn").value="";$("rv").value="";$("rd").value="";rview()};
+$("rl").onclick=async e=>{const b=e.target.closest("[data-rx]");if(!b)return;const id=+b.dataset.rx,r=rems.find(x=>x.id===id);
+ if(!r||!await ask({t:"Tandai selesai?",m:r.n+" akan dihapus dari pengingat.",y:"Selesai",d:false}))return;
+ rems=rems.filter(x=>x.id!==id);saveR();if(NAT())nat("LocalNotifications","cancel",{notifications:[{id}]}).catch(()=>{});rview()};
 mode();
 try{if(acc&&(localStorage.getItem("hajat_in")||sessionStorage.getItem("hajat_in")))document.body.classList.remove("locked")}catch(e){}
-render();
+render();rview();
 </script>
 </body>
 </html>
