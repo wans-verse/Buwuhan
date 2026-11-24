@@ -31,7 +31,10 @@ jobs:
           sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
           cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
           package com.hajatan.catatan;
+          import android.content.ContentResolver;
+          import android.content.ContentUris;
           import android.content.ContentValues;
+          import android.database.Cursor;
           import android.net.Uri;
           import android.os.Build;
           import android.os.Bundle;
@@ -48,16 +51,30 @@ jobs:
             }
             class Saver {
               @JavascriptInterface
-              public String save(String name, String text) {
+              public String put(String name, String text, String mime, boolean over) {
                 try {
                   if (Build.VERSION.SDK_INT < 29) return "sdk";
-                  ContentValues v = new ContentValues();
-                  v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-                  v.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
-                  v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-                  Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                  ContentResolver cr = getContentResolver();
+                  Uri base = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                  Uri u = null;
+                  if (over) {
+                    Cursor c = cr.query(base, new String[]{MediaStore.MediaColumns._ID},
+                      MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + "=?",
+                      new String[]{name, Environment.DIRECTORY_DOWNLOADS + "/"}, null);
+                    if (c != null) {
+                      if (c.moveToFirst()) u = ContentUris.withAppendedId(base, c.getLong(0));
+                      c.close();
+                    }
+                  }
+                  if (u == null) {
+                    ContentValues v = new ContentValues();
+                    v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                    v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+                    v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                    u = cr.insert(base, v);
+                  }
                   if (u == null) return "gagal";
-                  OutputStream o = getContentResolver().openOutputStream(u);
+                  OutputStream o = cr.openOutputStream(u, "wt");
                   o.write(text.getBytes("UTF-8"));
                   o.close();
                   return "ok";
