@@ -28,7 +28,8 @@ jobs:
           cp index.html www/index.html
           npx cap init "Buwuhan" com.hajatan.catatan --web-dir www
           npx cap add android
-          cp -r res/. android/app/src/main/res/
+          unzip -oq ikon*.zip -d ikon
+          cp -r ikon/res/. android/app/src/main/res/
           sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
           cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
           package com.hajatan.catatan;
