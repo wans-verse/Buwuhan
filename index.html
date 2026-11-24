@@ -462,14 +462,14 @@ header{position:sticky;top:0;z-index:8}
 <div class="modal" id="xm"><div class="sheet" style="max-width:340px"><h2>Ekspor data</h2><input id="xn" placeholder="Nama file" autocomplete="off"><div class="acts"><button class="btn g" id="xc">Batal</button><button class="btn" id="xs">Ekspor</button></div></div></div>
 <div class="modal page" id="rmd"><div class="sheet">
  <h2>Pengingat</h2>
- <div id="rl"></div>
- <div class="rsub">Tambah pengingat</div>
- <input id="rn" list="rdl" placeholder="Nama yang dikembalikan" autocomplete="off"><datalist id="rdl"></datalist>
+ <div class="rsub" style="margin-top:0">Tambah pengingat</div>
+ <input id="rn" list="rdl" placeholder="Nama yang dikembalikan" autocomplete="off"><datalist id="rdl"></datalist><div id="rpk" style="display:none"></div>
  <input id="rv" inputmode="numeric" placeholder="Nominal (opsional)" autocomplete="off">
  <input id="rb" placeholder="Barang (opsional)" autocomplete="off" style="display:none">
  <div style="display:flex;gap:8px"><input type="date" id="rd" style="flex:1.4"><input type="time" id="rt" value="08:00" style="flex:1"></div>
- <button class="btn g" id="rtest" type="button" style="width:100%;margin-top:10px">Tes notifikasi (5 detik)</button>
  <div class="acts"><button class="btn g" id="rc">Tutup</button><button class="btn" id="rs">Simpan</button></div>
+ <div class="rsub" style="margin-top:20px">Daftar pengingat</div>
+ <div id="rl"></div>
 </div></div>
 <div class="modal page" id="smd"><div class="sheet"><h2>Ringkasan</h2><div id="smb"></div><div class="acts"><button class="btn" id="smc">Tutup</button></div></div></div>
 <div class="modal" id="cf"><div class="sheet cfs">
@@ -628,7 +628,6 @@ $("sum").onclick=()=>{
  let h='<div class="smh"><div class="sm-h">Total uang · '+esc(E.n)+'</div><div class="sm-big">'+rp(t)+'</div><div class="smf">'+c+' tamu'+'</div></div>';
  if(!c)h+='<div class="smc"><div class="hint" style="margin:0">Belum ada data.</div></div>';
  else{
-  if(paid.length)h+='<div class="smk"><div><small>Tertinggi</small><b>'+rp(mx.m)+'</b><span>'+esc(mx.n)+'</span></div><div><small>Terendah</small><b>'+rp(mn.m)+'</b><span>'+esc(mn.n)+'</span></div></div>';
   const bs=E.bk.map((k,i)=>{const r=all.filter(d=>d.t===k);return{k,n:r.length,s:r.reduce((a,b)=>a+b.m,0),col:COL[i%COL.length]}});
   const W=bs.reduce((a,b)=>a+(t?b.s:b.n),0)||1,C=2*Math.PI*40;let off=0,arcs="";
   bs.forEach(b=>{const w=(t?b.s:b.n)/W*C;if(w>0){arcs+='<circle cx="60" cy="60" r="40" fill="none" stroke="'+b.col+'" stroke-width="18" stroke-dasharray="'+w.toFixed(2)+' '+(C-w).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 60 60)"/>';off+=w}});
@@ -702,7 +701,7 @@ const RK="hajat_rem";let rems=[];try{rems=JSON.parse(localStorage.getItem(RK)||"
 const saveR=()=>{try{localStorage.setItem(RK,JSON.stringify(rems))}catch(e){}};
 const NAT=()=>{const C=window.Capacitor;return!!(C&&C.isNativePlatform&&C.isNativePlatform())};
 const nat=(p,m,o)=>{const C=window.Capacitor;return C.nativePromise?C.nativePromise(p,m,o):C.Plugins[p][m](o)};
-const fdt=t=>new Date(t).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+const fdt=t=>new Date(t).toLocaleString("id-ID",{weekday:"long",day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 function rview(){
  rems.sort((a,b)=>a.t-b.t);
  $("rl").innerHTML=rems.length?rems.map(r=>'<div class="rit'+(r.t<=Date.now()?" late":"")+(r.id===RNEW?" new":"")+'"><div style="min-width:0"><div class="nm">'+esc(r.n)+'</div><div class="ad">'+(r.m?rp(r.m)+" · ":"")+(r.b?esc(r.b)+" · ":"")+fdt(r.t)+'</div></div><button class="btn g" data-rx="'+r.id+'">Selesai</button></div>').join(""):'<div class="hint" style="margin:0 2px 6px">Belum ada pengingat.</div>';
@@ -718,16 +717,19 @@ $("bell").onclick=()=>{rview();$("rn").oninput();$("rmd").classList.add("on")};
 $("rc").onclick=()=>$("rmd").classList.remove("on");
 $("rmd").onclick=e=>{if(e.target.id==="rmd")$("rmd").classList.remove("on")};
 $("rv").oninput=()=>{$("rv").value=fmt($("rv").value.replace(/\D/g,""))};
-$("rn").oninput=()=>{const q=$("rn").value.trim(),g=RG[q];rbShow(!!g&&brg(g.t));if(!g)return;if(!$("rv").value&&g.m)$("rv").value=fmt(g.m);if(!$("rb").value&&hb(g))$("rb").value=itxt(g)};
+let RAUTO=false;
+$("rv").addEventListener("input",()=>{RAUTO=false});
+$("rn").oninput=()=>{const q=$("rn").value.trim(),pk=$("rpk");pk.style.display="none";pk.innerHTML="";
+ let g=RG[q];
+ if(!g&&q){const ms=Object.keys(RG).filter(k=>RG[k].n.toLowerCase()===q.toLowerCase());
+  if(ms.length===1)g=RG[ms[0]];
+  else if(ms.length>1){pk.innerHTML='<div class="rsub" style="margin:4px 0">Ada '+ms.length+' nama sama, pilih:</div>'+ms.map(k=>'<button type="button" class="btn g" data-pk="'+esc(k)+'" style="display:block;width:100%;text-align:left;margin-bottom:6px">'+esc(k)+'</button>').join("");pk.style.display="block"}}
+ rbShow(!!g&&brg(g.t));
+ if(!g){if(RAUTO){$("rv").value="";RAUTO=false}return}
+ if((!$("rv").value||RAUTO)&&g.m){$("rv").value=fmt(g.m);RAUTO=true}
+ if(!$("rb").value&&hb(g))$("rb").value=itxt(g)};
+$("rpk").onclick=e=>{const b=e.target.closest("[data-pk]");if(!b)return;$("rn").value=b.dataset.pk;$("rn").oninput()};
 const rinfo=(t,m)=>ask({k:/^(Gagal|Izin)/.test(t)?"d":"w",t,m,y:"OK",d:false,info:true});
-$("rtest").onclick=async()=>{
- if(!NAT()){await rinfo("Hanya di aplikasi","Tes notifikasi hanya jalan di APK. Di browser notifikasi terjadwal tidak aktif.");return}
- try{
-  const p=await nat("LocalNotifications","requestPermissions");
-  if(p.display!=="granted"){await rinfo("Izin notifikasi ditolak","Aktifkan izin notifikasi untuk aplikasi ini di pengaturan HP.");return}
-  await nat("LocalNotifications","schedule",{notifications:[{id:2000000000,title:"Tes notifikasi",body:"Kalau ini muncul, pengingat berfungsi.",schedule:{at:new Date(Date.now()+5000).toISOString(),allowWhileIdle:true}}]});
-  await rinfo("Tes dijadwalkan","Notifikasi muncul sekitar 5 detik lagi. Tutup aplikasi atau kunci layar untuk melihat efek aslinya.")
- }catch(e){await rinfo("Gagal mengatur notifikasi",String(e&&e.message||e))}};
 $("rs").onclick=async()=>{
  const rq=$("rn").value.trim(),n=RG[rq]?RG[rq].n:rq,d=$("rd").value,tm=$("rt").value||"08:00";
  if(!n){$("rn").focus();return}
