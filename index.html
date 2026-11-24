@@ -125,6 +125,7 @@ body.locked #lg{display:flex}
 .rit.late .ad{color:var(--red)}
 .rsub{margin:14px 0 8px;font-size:14px;color:var(--tx2);font-weight:600}
 .item .kt{font-weight:400}
+.item .no{color:var(--tx2);font-size:12px;font-weight:400;min-width:20px;padding-top:4px;flex:none}
 .sm-h{color:var(--tx2);font-size:13px;margin-bottom:2px}
 .sm-big{font-size:34px;font-weight:700;letter-spacing:-.8px}
 .sm-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
@@ -293,7 +294,7 @@ function render(){
  const r=view(),pages=Math.max(1,Math.ceil(r.length/PER));
  if(page>=pages)page=pages-1;
  const sl=r.slice(page*PER,page*PER+PER);
- $("list").innerHTML=sl.length?sl.map(d=>`<div class="item" data-id="${d.id}"><div class="nm">${esc(d.n)}${d.b&&d.b.length?'<div class="kt">'+esc(itxt(d))+"</div>":""}</div><div class="ad">${esc(d.a)||"-"}</div><div class="nom">${d.m||!(d.b&&d.b.length)?rp(d.m):"-"}</div></div>`).join(""):'<div class="empty">Belum ada data. Tekan + untuk menambah.</div>';
+ $("list").innerHTML=sl.length?sl.map((d,i)=>`<div class="item" data-id="${d.id}"><div class="nm" style="display:flex;gap:6px"><span class="no">${page*PER+i+1}</span><div style="min-width:0">${esc(d.n)}${d.b&&d.b.length?'<div class="kt">'+esc(itxt(d))+"</div>":""}</div></div><div class="ad">${esc(d.a)||"-"}</div><div class="nom">${d.m||!(d.b&&d.b.length)?rp(d.m):"-"}</div></div>`).join(""):'<div class="empty">Belum ada data. Tekan + untuk menambah.</div>';
  $("cnt").textContent=r.length+" tamu untuk "+tab;
  $("tot").textContent="Total "+rp(r.reduce((a,b)=>a+b.m,0));
  $("pg").textContent="Hal "+(page+1)+" / "+pages;
@@ -345,7 +346,7 @@ $("sv").onclick=async()=>{
 $("dl").onclick=async()=>{const g=data.find(x=>x.id===editId);if(g&&await ask({t:"Hapus tamu?",m:g.n+" ("+rp(g.m)+") akan dihapus.",y:"Hapus"})){data=data.filter(x=>x.id!==editId);save();close();render()}};
 
 function dl(name,txt,type){
- if(window.AndroidSave){try{if(window.AndroidSave.put(name,txt,type||"text/plain",false)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download.",y:"OK",d:false,info:true});return}}catch(e){}}
+ if(window.AndroidSave){try{if(window.AndroidSave.put(name,txt,type||"text/plain",false)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download/Catatan Hajatan.",y:"OK",d:false,info:true});return}}catch(e){}}
  const C=window.Capacitor;
  if(C&&C.isNativePlatform&&C.isNativePlatform()){
   (async()=>{try{
