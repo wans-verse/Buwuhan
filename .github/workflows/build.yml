@@ -60,7 +60,7 @@ jobs:
                   if (over) {
                     Cursor c = cr.query(base, new String[]{MediaStore.MediaColumns._ID},
                       MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + "=?",
-                      new String[]{name, Environment.DIRECTORY_DOWNLOADS + "/"}, null);
+                      new String[]{name, Environment.DIRECTORY_DOWNLOADS + "/Catatan Hajatan/"}, null);
                     if (c != null) {
                       if (c.moveToFirst()) u = ContentUris.withAppendedId(base, c.getLong(0));
                       c.close();
@@ -70,7 +70,7 @@ jobs:
                     ContentValues v = new ContentValues();
                     v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
                     v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-                    v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                    v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Catatan Hajatan");
                     u = cr.insert(base, v);
                   }
                   if (u == null) return "gagal";
