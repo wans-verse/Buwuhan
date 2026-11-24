@@ -130,7 +130,7 @@ body.locked #lg{display:flex}
 .sm-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
 .sm-kv div{background:var(--bg);border-radius:12px;padding:10px}
 .sm-kv small{display:block;color:var(--tx2);font-size:12px;margin-bottom:2px}
-.sm-kv b{font-size:15px}
+.sm-kv b{font-size:20px}
 .sm-t{font-size:13px;color:var(--tx2);font-weight:600;margin:20px 0 10px}
 .sm-r{margin-bottom:14px}
 .sm-top{display:flex;justify-content:space-between;gap:10px;font-size:15px}
@@ -365,7 +365,7 @@ $("sum").onclick=()=>{
  const cp=n=>n>=1e6?(Math.round(n/1e5)/10).toString().replace(".",",")+" jt":n>=1e3?Math.round(n/1e3)+" rb":String(n);
  const mx=all.reduce((a,b)=>!a||b.m>a.m?b:a,null);
  let h='<div class="sm-h">Total uang · '+esc(E.n)+'</div><div class="sm-big">'+rp(t)+'</div>';
- h+='<div class="sm-kv"><div><small>Tamu</small><b>'+c+'</b></div><div><small>Rata-rata</small><b>'+(c?"Rp "+cp(Math.round(t/c)):"-")+'</b></div><div><small>Terbesar</small><b>'+(mx&&mx.m?"Rp "+cp(mx.m):"-")+'</b></div></div>';
+ h+='<div class="sm-kv" style="grid-template-columns:repeat('+Math.min(E.bk.length,3)+',1fr)">'+E.bk.map(k=>'<div><small>Tamu '+esc(k)+'</small><b>'+all.filter(d=>d.t===k).length+'</b></div>').join("")+'</div>';
  h+='<div class="sm-t">Per buku</div>';
  E.bk.forEach(k=>{const r=all.filter(d=>d.t===k),s=r.reduce((a,b)=>a+b.m,0),pc=t?Math.round(s/t*100):0;h+='<div class="sm-r"><div class="sm-top"><span>'+esc(k)+' <small style="color:var(--tx2)">'+r.length+' tamu</small></span><span>'+rp(s)+' · '+pc+'%</span></div><div class="sm-bar"><i data-w="'+pc+'"></i></div></div>'});
  const g={};all.forEach(d=>(d.b||[]).forEach(x=>{const k=x.n.trim().toLowerCase()+"|"+(x.u||"").trim().toLowerCase();(g[k]=g[k]||{n:x.n.trim(),u:x.u||"",q:0,c:0}).q+=+x.q||0;g[k].c++}));
