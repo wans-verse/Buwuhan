@@ -26,8 +26,9 @@ jobs:
           npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/filesystem@7 @capacitor/share@7 @capacitor/local-notifications@7
           mkdir www
           cp index.html www/index.html
-          npx cap init "Catatan Hajatan" com.hajatan.catatan --web-dir www
+          npx cap init "Buwuhan" com.hajatan.catatan --web-dir www
           npx cap add android
+          cp -r res/. android/app/src/main/res/
           sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
           cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
           package com.hajatan.catatan;
@@ -91,7 +92,10 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Ganti nama file APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Buwuhan.apk
+
       - uses: actions/upload-artifact@v4
         with:
-          name: catatan-hajatan-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: buwuhan-apk
+          path: Buwuhan.apk
