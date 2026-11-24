@@ -187,6 +187,7 @@ body.locked #lg{display:flex}
  </div>
  <div class="acts" style="margin-top:14px"><button class="btn" id="stc" title="Selesai" aria-label="Selesai"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>
 </div></div>
+<div class="modal" id="xm"><div class="sheet" style="max-width:340px"><h2>Ekspor data</h2><input id="xn" placeholder="Nama file" autocomplete="off"><div class="acts"><button class="btn g" id="xc">Batal</button><button class="btn" id="xs">Ekspor</button></div></div></div>
 <div class="modal" id="cf"><div class="sheet cfs">
  <div class="cfi d" id="cfi"></div>
  <h2 id="cft"></h2><p id="cfm"></p>
@@ -293,8 +294,20 @@ $("sv").onclick=()=>{
 };
 $("dl").onclick=async()=>{const g=data.find(x=>x.id===editId);if(g&&await ask({t:"Hapus tamu?",m:g.n+" ("+rp(g.m)+") akan dihapus.",y:"Hapus"})){data=data.filter(x=>x.id!==editId);save();close();render()}};
 
-function dl(name,txt,type){const u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
-$("bak").onclick=()=>dl("catatan-hajatan_"+new Date().toISOString().slice(0,10)+".txt",JSON.stringify({events,data}),"text/plain");
+function dl(name,txt,type){
+ const C=window.Capacitor;
+ if(C&&C.isNativePlatform&&C.isNativePlatform()){
+  (async()=>{try{
+   const call=(p,m,o)=>C.nativePromise?C.nativePromise(p,m,o):C.Plugins[p][m](o);
+   const r=await call("Filesystem","writeFile",{path:name,data:txt,directory:"CACHE",encoding:"utf8"});
+   await call("Share","share",{title:name,url:r.uri,dialogTitle:"Simpan cadangan"})
+  }catch(e){const m=String(e&&e.message||e);if(!/cancel/i.test(m))ask({t:"Gagal ekspor",m,y:"OK",d:false,info:true})}})();return}
+ const u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+const xm=$("xm"),xn=$("xn");
+$("bak").onclick=()=>{xn.value="Catatan hajatan.txt";xm.classList.add("on");setTimeout(()=>{xn.focus();xn.setSelectionRange(0,xn.value.length-4)},60)};
+$("xc").onclick=()=>xm.classList.remove("on");
+$("xs").onclick=()=>{let n=xn.value.trim().replace(/[\\\/:*?"<>|]/g,"").replace(/\.txt$/i,"").trim()||"Catatan hajatan";xm.classList.remove("on");dl(n+".txt",JSON.stringify({events,data}),"text/plain")};
+xn.addEventListener("keydown",e=>{if(e.key==="Enter")$("xs").click()});
 $("imp").onclick=()=>$("file").click();
 $("file").onchange=e=>{
  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
