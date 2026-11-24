@@ -124,6 +124,8 @@ body.locked #lg{display:flex}
 .rit{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
 .rit .btn{padding:8px 12px;font-size:14px;flex:none}
 .rit.late .ad{color:var(--red)}
+.rit.new{background:color-mix(in srgb,var(--grn) 14%,transparent);border-radius:12px;padding:10px 10px;animation:rnew 2.4s ease-out}
+@keyframes rnew{from{background:color-mix(in srgb,var(--grn) 35%,transparent)}}
 .rsub{margin:14px 0 8px;font-size:14px;color:var(--tx2);font-weight:600}
 .item .kt{font-weight:400}
 #seg{overflow-x:auto;scrollbar-width:none}#seg::-webkit-scrollbar{display:none}#seg button{flex:1 0 auto;white-space:nowrap;padding:8px 12px}
@@ -433,12 +435,15 @@ header{position:sticky;top:0;z-index:8}
  <input id="fa" placeholder="Alamat" autocomplete="off"><div class="achips" id="ac"></div>
  <input id="fm" inputmode="numeric" placeholder="Nominal (Rp)" autocomplete="off">
  <div class="qk" id="qk"><button type="button" data-v="50000">50rb</button><button type="button" data-v="100000">100rb</button><button type="button" data-v="150000">150rb</button><button type="button" data-v="200000">200rb</button></div>
+ <div id="brgBox">
  <div class="rsub" style="margin:2px 0 8px">Barang (opsional)</div>
  <div id="gl"></div>
  <input id="gn" list="gdl" placeholder="Jenis barang (mis. Beras)" autocomplete="off"><datalist id="gdl"></datalist>
  <datalist id="gud"><option value="kg"><option value="liter"><option value="bungkus"><option value="dus"><option value="karton"><option value="botol"><option value="butir"><option value="sak"><option value="kaleng"><option value="pak"><option value="pcs"></datalist>
  <div style="display:flex;gap:8px"><input id="gq" inputmode="decimal" placeholder="Jumlah" style="flex:.8" autocomplete="off"><input id="gu" list="gud" placeholder="Satuan" style="flex:1" autocomplete="off"><input id="gr" placeholder="Merek (opsional)" style="flex:1.3" autocomplete="off"></div>
  <button type="button" class="btn g" id="gad" style="width:100%;justify-content:center;margin-bottom:12px">Tambah barang</button>
+ </div>
+ <button type="button" class="btn g" id="gbell" style="display:none;width:100%;justify-content:center;gap:8px;margin-bottom:12px"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 004 0"/></svg>Ingatkan nanti</button>
  <div class="acts"><button class="btn g" id="cc" title="Batal" aria-label="Batal"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button class="btn del" id="dl" style="display:none" title="Hapus" aria-label="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button><button class="btn" id="sv" title="Simpan" aria-label="Simpan"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg></button></div>
 </div></div>
 
@@ -461,8 +466,9 @@ header{position:sticky;top:0;z-index:8}
  <div class="rsub">Tambah pengingat</div>
  <input id="rn" list="rdl" placeholder="Nama yang dikembalikan" autocomplete="off"><datalist id="rdl"></datalist>
  <input id="rv" inputmode="numeric" placeholder="Nominal (opsional)" autocomplete="off">
- <input id="rb" placeholder="Barang (opsional)" autocomplete="off">
+ <input id="rb" placeholder="Barang (opsional)" autocomplete="off" style="display:none">
  <div style="display:flex;gap:8px"><input type="date" id="rd" style="flex:1.4"><input type="time" id="rt" value="08:00" style="flex:1"></div>
+ <button class="btn g" id="rtest" type="button" style="width:100%;margin-top:10px">Tes notifikasi (5 detik)</button>
  <div class="acts"><button class="btn g" id="rc">Tutup</button><button class="btn" id="rs">Simpan</button></div>
 </div></div>
 <div class="modal page" id="smd"><div class="sheet"><h2>Ringkasan</h2><div id="smb"></div><div class="acts"><button class="btn" id="smc">Tutup</button></div></div></div>
@@ -484,6 +490,12 @@ const ev=()=>events.find(x=>x.id==curE)||events[0],tabs=()=>ev().bk;
 const saveE=()=>{try{localStorage.setItem(EK,JSON.stringify(events))}catch(e){}};
 const OLD={pengantin:"Pengantin",bapak:"Bapak",ibu:"Ibu"};
 data.forEach(d=>{if(!d.e)d.e=events[0].id;d.t=OLD[d.t]||d.t||tabs()[0]});
+{let ch=false;events.forEach(E=>{if(!Array.isArray(E.bk)||!E.bk.includes("Pengantin"))return;
+ const has=data.some(d=>d.e===E.id&&d.t==="Pengantin");let i=E.bk.indexOf("Pengantin");
+ const add=["Pengantin Pria","Pengantin Wanita"].filter(x=>!E.bk.includes(x));
+ if(has){E.bk.splice(i+1,0,...add)}else{E.bk.splice(i,1,...add)}ch=true});
+ events.forEach(E=>{if(Array.isArray(E.bk)&&E.bk.includes("Pengantin")&&!data.some(d=>d.e===E.id&&d.t==="Pengantin")){E.bk=E.bk.filter(x=>x!=="Pengantin");ch=true}});
+ if(ch)saveE()}
 let tab=tabs()[0];try{const x=localStorage.getItem("hajat_tab");if(tabs().includes(x))tab=x}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
 const rp=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
@@ -514,7 +526,7 @@ $("ths").onclick=e=>{const b=e.target.closest("button");if(b)setTheme(b.dataset.
 
 function view(){
  const q=$("q").value.trim().toLowerCase(),s=sortKey;
- let r=data.filter(d=>d.e===ev().id&&d.t===tab&&(!q||d.n.toLowerCase().includes(q)||(d.a||"").toLowerCase().includes(q)||(d.b||[]).some(i=>i.n.toLowerCase().includes(q))));
+ let r=data.filter(d=>d.e===ev().id&&d.t===tab&&(!q||d.n.toLowerCase().includes(q)||(d.a||"").toLowerCase().includes(q)||(brg(d.t)?d.b||[]:[]).some(i=>i.n.toLowerCase().includes(q))));
  const cmp={az:(a,b)=>a.n.localeCompare(b.n,"id"),za:(a,b)=>b.n.localeCompare(a.n,"id"),aaz:(a,b)=>(a.a||"").localeCompare(b.a||"","id")||a.n.localeCompare(b.n,"id"),aza:(a,b)=>(b.a||"").localeCompare(a.a||"","id")||a.n.localeCompare(b.n,"id"),hi:(a,b)=>b.m-a.m,lo:(a,b)=>a.m-b.m,new:(a,b)=>b.id-a.id};
  r.sort(cmp[s]);return r;
 }
@@ -533,14 +545,15 @@ function render(){
  const r=view(),pages=Math.max(1,Math.ceil(r.length/PER));
  if(page>=pages)page=pages-1;
  const sl=r.slice(page*PER,page*PER+PER);
- $("list").innerHTML=sl.length?sl.map((d,i)=>`<div class="item" data-id="${d.id}"><div class="nm" style="display:flex;gap:6px"><span class="no">${page*PER+i+1}</span><div style="min-width:0">${esc(d.n)}${d.b&&d.b.length?'<div class="kt">'+esc(itxt(d))+"</div>":""}</div></div><div class="ad">${esc(d.a)||"-"}</div><div class="nom">${d.m||!(d.b&&d.b.length)?rp(d.m):"-"}</div></div>`).join(""):($("q").value.trim()?'<div class="empty"><b>Tidak ditemukan</b>Coba kata kunci lain.</div>':'<div class="empty"><div class="mk"><svg class="lg" viewBox="150 67 1000 1000"><path class="lb" d="M243 541C246 512 280 490 316 474L338 578L243 545Z"/><path class="lb" d="M1014 541C1010 508 975 484 935 465L915 572L1014 545Z"/><g transform="translate(646 545) rotate(-11.7)"><rect class="lb" x="-284" y="-168" width="568" height="420" rx="26"/><rect class="lp" x="-236" y="-120" width="472" height="380" rx="8"/><path class="lb" d="M-236 -120H-164A72 72 0 0 1 -236 -48Z"/><path class="lb" d="M236 -120H164A72 72 0 0 0 236 -48Z"/><circle class="lb" r="132"/><text class="lp" y="48" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="150">Rp</text></g><polyline class="ls" points="243,545 631,752 1014,545" fill="none" stroke-width="24" stroke-linejoin="round"/><polyline class="lg2" points="243,575 631,795 1014,575" fill="none" stroke-width="44" stroke-linejoin="round"/><path class="lb" d="M243 575L631 795L1014 575V898Q1014 963 948 963H308Q243 963 243 898Z"/><g class="ls" fill="none" stroke-width="52" stroke-linecap="round"><line x1="838" y1="198" x2="829" y2="258"/><line x1="975" y1="245" x2="930" y2="290"/><line x1="1032" y1="372" x2="972" y2="377"/></g></svg></div><b>Belum ada catatan</b>Buku '+esc(tab)+' masih kosong.<br>Ketuk + di bawah untuk menambah tamu.</div>');
+ $("list").innerHTML=sl.length?sl.map((d,i)=>`<div class="item" data-id="${d.id}"><div class="nm" style="display:flex;gap:6px"><span class="no">${page*PER+i+1}</span><div style="min-width:0">${esc(d.n)}${hb(d)?'<div class="kt">'+esc(itxt(d))+"</div>":""}</div></div><div class="ad">${esc(d.a)||"-"}</div><div class="nom">${d.m||!hb(d)?rp(d.m):"-"}</div></div>`).join(""):($("q").value.trim()?'<div class="empty"><b>Tidak ditemukan</b>Coba kata kunci lain.</div>':'<div class="empty"><div class="mk"><svg class="lg" viewBox="150 67 1000 1000"><path class="lb" d="M243 541C246 512 280 490 316 474L338 578L243 545Z"/><path class="lb" d="M1014 541C1010 508 975 484 935 465L915 572L1014 545Z"/><g transform="translate(646 545) rotate(-11.7)"><rect class="lb" x="-284" y="-168" width="568" height="420" rx="26"/><rect class="lp" x="-236" y="-120" width="472" height="380" rx="8"/><path class="lb" d="M-236 -120H-164A72 72 0 0 1 -236 -48Z"/><path class="lb" d="M236 -120H164A72 72 0 0 0 236 -48Z"/><circle class="lb" r="132"/><text class="lp" y="48" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="150">Rp</text></g><polyline class="ls" points="243,545 631,752 1014,545" fill="none" stroke-width="24" stroke-linejoin="round"/><polyline class="lg2" points="243,575 631,795 1014,575" fill="none" stroke-width="44" stroke-linejoin="round"/><path class="lb" d="M243 575L631 795L1014 575V898Q1014 963 948 963H308Q243 963 243 898Z"/><g class="ls" fill="none" stroke-width="52" stroke-linecap="round"><line x1="838" y1="198" x2="829" y2="258"/><line x1="975" y1="245" x2="930" y2="290"/><line x1="1032" y1="372" x2="972" y2="377"/></g></svg></div><b>Belum ada catatan</b>Buku '+esc(tab)+' masih kosong.<br>Ketuk + di bawah untuk menambah tamu.</div>');
   $("cnt").textContent=r.length+" tamu untuk "+tab;
  $("tot").textContent="Total "+rp(r.reduce((a,b)=>a+b.m,0));
  $("pg").textContent="Hal "+(page+1)+" / "+pages;
  document.querySelector(".pager").style.display=pages>1?"flex":"none";
  $("prev").disabled=page===0;$("next").disabled=page>=pages-1;
 }
-function setF(){$("fTl").textContent=$("fT").value;document.querySelectorAll("#fTm button").forEach(b=>b.classList.toggle("sel",b.dataset.v===$("fT").value))}
+const brg=t=>String(t||"").trim().toLowerCase()==="ibu",hb=d=>brg(d.t)&&d.b&&d.b.length;
+function setF(){$("brgBox").style.display=brg($("fT").value)?"":"none";$("fTl").textContent=$("fT").value;document.querySelectorAll("#fTm button").forEach(b=>b.classList.toggle("sel",b.dataset.v===$("fT").value))}
 $("fTb").onclick=e=>{e.stopPropagation();const m=$("fTm"),o=m.classList.contains("open");closeMenus();if(!o)m.classList.add("open")};
 const fmt=n=>n?Number(n).toLocaleString("id-ID"):"";
 $("fm").oninput=()=>{$("fm").value=fmt($("fm").value.replace(/\D/g,""))};
@@ -561,7 +574,7 @@ function open(id){
  $("mt").textContent=id?"Ubah Tamu":"Tambah Tamu · "+tab;
  document.querySelector("#md .fdd").style.display=id?"":"none";
  $("fTm").innerHTML=tabs().map(k=>'<button type="button" data-v="'+esc(k)+'">'+esc(k)+'</button>').join("");$("fT").value=d.t||tab;setF();$("fn").value=d.n||"";$("fa").value=d.a||"";$("fm").value=fmt(d.m);curItems=(d.b||[]).map(x=>({...x}));["gn","gq","gu","gr"].forEach(i=>$(i).value="");itemsView();gdl();adl();adc();
- $("dl").style.display=id?"inline-flex":"none";$("md").classList.add("on");snapG=gv();
+ $("dl").style.display=id?"inline-flex":"none";$("gbell").style.display=id?"flex":"none";$("md").classList.add("on");snapG=gv();
 }
 let curItems=[],snapG="";const gv=()=>[$("fT").value,$("fn").value,$("fa").value,$("fm").value,JSON.stringify(curItems)].join("|");
 function itemsView(){$("gl").innerHTML=curItems.map((x,i)=>'<div class="rit"><div style="min-width:0"><div class="nm" style="font-size:16px">'+esc(x.n)+'</div><div class="ad">'+fq(x.q)+(x.u?" "+esc(x.u):"")+(x.r?" · "+esc(x.r):"")+'</div></div><button type="button" class="btn g" data-gx="'+i+'">Hapus</button></div>').join("")}
@@ -583,7 +596,7 @@ $("list").onclick=e=>{if(e.target.closest("[data-add]")){open(null);return}const
 $("sv").onclick=async()=>{
  const n=$("fn").value.trim();if(!n){$("fn").focus();return}
  addItem();
- const o={t:$("fT").value,n,a:$("fa").value.trim(),m:parseInt(($("fm").value||"0").replace(/\D/g,""))||0,b:curItems.map(x=>({...x}))};
+ const o={t:$("fT").value,n,a:$("fa").value.trim(),m:parseInt(($("fm").value||"0").replace(/\D/g,""))||0,b:brg($("fT").value)?curItems.map(x=>({...x})):((editId&&data.find(x=>x.id===editId)||{}).b||[])};
  const du=data.find(x=>x.e===ev().id&&x.t===o.t&&x.id!==editId&&x.n.trim().toLowerCase()===n.toLowerCase());
  if(du&&!await ask({t:"Nama sudah ada",m:'"'+du.n+'" sudah tercatat di buku '+o.t+" ("+rp(du.m)+(du.a?", "+du.a:"")+").\nTetap simpan?",y:"Tetap simpan",d:false}))return;
  if(editId){Object.assign(data.find(x=>x.id===editId),o)}else{data.push({id:Date.now(),e:ev().id,...o})}
@@ -606,7 +619,7 @@ let xk="txt";
 const openX=k=>{xk=k;xn.value="Catatan hajatan."+k;xm.classList.add("on");setTimeout(()=>{xn.focus();xn.setSelectionRange(0,xn.value.length-4)},60)};
 $("bak").onclick=()=>openX("txt");$("csv").onclick=()=>openX("csv");
 const csvq=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
-function csvText(){const E=ev(),rows=["Kategori,Nama,Alamat,Nominal,Keterangan"];data.filter(d=>d.e===E.id).sort((a,b)=>E.bk.indexOf(a.t)-E.bk.indexOf(b.t)||a.n.localeCompare(b.n,"id")).forEach(d=>rows.push([csvq(d.t),csvq(d.n),csvq(d.a),d.m||0,csvq([d.k,(d.b||[]).map(x=>x.n+" "+fq(x.q)+(x.u?" "+x.u:"")+(x.r?" ("+x.r+")":"")).join("; ")].filter(Boolean).join(" | "))].join(",")));return"\uFEFF"+rows.join("\r\n")}
+function csvText(){const E=ev(),rows=["Kategori,Nama,Alamat,Nominal,Keterangan"];data.filter(d=>d.e===E.id).sort((a,b)=>E.bk.indexOf(a.t)-E.bk.indexOf(b.t)||a.n.localeCompare(b.n,"id")).forEach(d=>rows.push([csvq(d.t),csvq(d.n),csvq(d.a),d.m||0,csvq([d.k,(brg(d.t)?d.b||[]:[]).map(x=>x.n+" "+fq(x.q)+(x.u?" "+x.u:"")+(x.r?" ("+x.r+")":"")).join("; ")].filter(Boolean).join(" | "))].join(",")));return"\uFEFF"+rows.join("\r\n")}
 $("sum").onclick=()=>{
  const E=ev(),all=data.filter(d=>d.e===E.id),t=all.reduce((a,b)=>a+b.m,0),c=all.length;
  const cp=n=>n>=1e6?(Math.round(n/1e5)/10).toString().replace(".",",")+" jt":n>=1e3?Math.round(n/1e3)+" rb":String(n);
@@ -692,17 +705,31 @@ const nat=(p,m,o)=>{const C=window.Capacitor;return C.nativePromise?C.nativeProm
 const fdt=t=>new Date(t).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
 function rview(){
  rems.sort((a,b)=>a.t-b.t);
- $("rl").innerHTML=rems.length?rems.map(r=>'<div class="rit'+(r.t<=Date.now()?" late":"")+'"><div style="min-width:0"><div class="nm">'+esc(r.n)+'</div><div class="ad">'+(r.m?rp(r.m)+" · ":"")+(r.b?esc(r.b)+" · ":"")+fdt(r.t)+'</div></div><button class="btn g" data-rx="'+r.id+'">Selesai</button></div>').join(""):'<div class="hint" style="margin:0 2px 6px">Belum ada pengingat.</div>';
+ $("rl").innerHTML=rems.length?rems.map(r=>'<div class="rit'+(r.t<=Date.now()?" late":"")+(r.id===RNEW?" new":"")+'"><div style="min-width:0"><div class="nm">'+esc(r.n)+'</div><div class="ad">'+(r.m?rp(r.m)+" · ":"")+(r.b?esc(r.b)+" · ":"")+fdt(r.t)+'</div></div><button class="btn g" data-rx="'+r.id+'">Selesai</button></div>').join(""):'<div class="hint" style="margin:0 2px 6px">Belum ada pengingat.</div>';
  $("bdg").style.display=rems.length?"flex":"none";$("bdg").textContent=rems.length;
- $("rdl").innerHTML=[...new Set(data.filter(d=>d.e===ev().id).map(d=>d.n))].map(n=>'<option value="'+esc(n)+'">').join("")}
-$("bell").onclick=()=>{rview();$("rmd").classList.add("on")};
+ RG=rguests();$("rdl").innerHTML=Object.keys(RG).map(k=>'<option value="'+esc(k)+'">').join("")}
+let RG={},RNEW=null;const rbShow=v=>{$("rb").style.display=v?"":"none";if(!v)$("rb").value=""};
+function rguests(){const L=data.filter(d=>d.e===ev().id),cnt={};L.forEach(d=>{const k=d.n.toLowerCase();cnt[k]=(cnt[k]||0)+1});const o={},used={};
+ L.forEach(d=>{const k=d.n.toLowerCase();let lb=d.n;if(cnt[k]>1){const ex=[d.a,d.m?rp(d.m):""].filter(Boolean).join(" · ");lb=d.n+(ex?" · "+ex:"")}
+  let u=lb,i=2;while(o[u])u=lb+" ("+(i++)+")";o[u]=d});return o}
+$("gbell").onclick=()=>{const nm=$("fn").value.trim();if(!nm){$("fn").focus();return}
+ rview();$("rn").value=nm;$("rv").value=$("fm").value;rbShow(brg($("fT").value));$("rb").value=brg($("fT").value)&&curItems.length?itxt({b:curItems}):"";close();$("rmd").classList.add("on");setTimeout(()=>$("rd").focus(),50)};
+$("bell").onclick=()=>{rview();$("rn").oninput();$("rmd").classList.add("on")};
 $("rc").onclick=()=>$("rmd").classList.remove("on");
 $("rmd").onclick=e=>{if(e.target.id==="rmd")$("rmd").classList.remove("on")};
 $("rv").oninput=()=>{$("rv").value=fmt($("rv").value.replace(/\D/g,""))};
-$("rn").oninput=()=>{const n=$("rn").value.trim().toLowerCase(),g=data.find(d=>d.e===ev().id&&d.n.toLowerCase()===n);if(!g)return;if(!$("rv").value&&g.m)$("rv").value=fmt(g.m);if(!$("rb").value&&g.b&&g.b.length)$("rb").value=itxt(g)};
+$("rn").oninput=()=>{const q=$("rn").value.trim(),g=RG[q];rbShow(!!g&&brg(g.t));if(!g)return;if(!$("rv").value&&g.m)$("rv").value=fmt(g.m);if(!$("rb").value&&hb(g))$("rb").value=itxt(g)};
 const rinfo=(t,m)=>ask({k:/^(Gagal|Izin)/.test(t)?"d":"w",t,m,y:"OK",d:false,info:true});
+$("rtest").onclick=async()=>{
+ if(!NAT()){await rinfo("Hanya di aplikasi","Tes notifikasi hanya jalan di APK. Di browser notifikasi terjadwal tidak aktif.");return}
+ try{
+  const p=await nat("LocalNotifications","requestPermissions");
+  if(p.display!=="granted"){await rinfo("Izin notifikasi ditolak","Aktifkan izin notifikasi untuk aplikasi ini di pengaturan HP.");return}
+  await nat("LocalNotifications","schedule",{notifications:[{id:2000000000,title:"Tes notifikasi",body:"Kalau ini muncul, pengingat berfungsi.",schedule:{at:new Date(Date.now()+5000).toISOString(),allowWhileIdle:true}}]});
+  await rinfo("Tes dijadwalkan","Notifikasi muncul sekitar 5 detik lagi. Tutup aplikasi atau kunci layar untuk melihat efek aslinya.")
+ }catch(e){await rinfo("Gagal mengatur notifikasi",String(e&&e.message||e))}};
 $("rs").onclick=async()=>{
- const n=$("rn").value.trim(),d=$("rd").value,tm=$("rt").value||"08:00";
+ const rq=$("rn").value.trim(),n=RG[rq]?RG[rq].n:rq,d=$("rd").value,tm=$("rt").value||"08:00";
  if(!n){$("rn").focus();return}
  if(!d){$("rd").focus();return}
  const t=new Date(d+"T"+tm).getTime();
@@ -715,7 +742,7 @@ $("rs").onclick=async()=>{
   if(p.display!=="granted"){await rinfo("Izin notifikasi ditolak","Aktifkan izin notifikasi untuk aplikasi ini di pengaturan HP.");return}
   await nat("LocalNotifications","schedule",{notifications:[{id,title:"Waktunya kembalikan buwuhan",body:n+(m?" · "+rp(m):"")+(b?" · "+b:""),schedule:{at:new Date(t).toISOString(),allowWhileIdle:true}}]})
  }catch(e){await rinfo("Gagal mengatur notifikasi",String(e&&e.message||e));return}}
- rems.push({id,n,m,b,t});saveR();$("rn").value="";$("rv").value="";$("rb").value="";$("rd").value="";rview();$("rmd").classList.remove("on")};
+ rems.push({id,n,m,b,t});saveR();$("rn").value="";$("rv").value="";$("rb").value="";$("rd").value="";rbShow(false);RNEW=id;rview();$("rl").scrollIntoView({block:"nearest"});await ask({k:"s",t:"Pengingat disimpan",m:n+" · "+fdt(t),y:"OK",d:false,info:true});setTimeout(()=>{RNEW=null},2500)};
 $("rl").onclick=async e=>{const b=e.target.closest("[data-rx]");if(!b)return;const id=+b.dataset.rx,r=rems.find(x=>x.id===id);
  if(!r||!await ask({t:"Tandai selesai?",m:r.n+" akan dihapus dari pengingat.",y:"Selesai",d:false}))return;
  rems=rems.filter(x=>x.id!==id);saveR();if(NAT())nat("LocalNotifications","cancel",{notifications:[{id}]}).catch(()=>{});rview()};
