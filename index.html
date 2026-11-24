@@ -346,7 +346,7 @@ $("sv").onclick=async()=>{
 $("dl").onclick=async()=>{const g=data.find(x=>x.id===editId);if(g&&await ask({t:"Hapus tamu?",m:g.n+" ("+rp(g.m)+") akan dihapus.",y:"Hapus"})){data=data.filter(x=>x.id!==editId);save();close();render()}};
 
 function dl(name,txt,type){
- if(window.AndroidSave){try{if(window.AndroidSave.put(name,txt,type||"text/plain",false)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download/Catatan Hajatan.",y:"OK",d:false,info:true});return}}catch(e){}}
+ if(window.AndroidSave){try{if(window.AndroidSave.put(name,txt,type||"text/plain",true)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download/Catatan Hajatan.",y:"OK",d:false,info:true});return}}catch(e){}}
  const C=window.Capacitor;
  if(C&&C.isNativePlatform&&C.isNativePlatform()){
   (async()=>{try{
