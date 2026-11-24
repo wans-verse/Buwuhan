@@ -310,6 +310,7 @@ $("sv").onclick=()=>{
 $("dl").onclick=async()=>{const g=data.find(x=>x.id===editId);if(g&&await ask({t:"Hapus tamu?",m:g.n+" ("+rp(g.m)+") akan dihapus.",y:"Hapus"})){data=data.filter(x=>x.id!==editId);save();close();render()}};
 
 function dl(name,txt,type){
+ if(window.AndroidSave){try{if(window.AndroidSave.save(name,txt)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download.",y:"OK",d:false,info:true});return}}catch(e){}}
  const C=window.Capacitor;
  if(C&&C.isNativePlatform&&C.isNativePlatform()){
   (async()=>{try{
@@ -419,7 +420,7 @@ $("rs").onclick=async()=>{
   if(p.display!=="granted"){await rinfo("Izin notifikasi ditolak","Aktifkan izin notifikasi untuk aplikasi ini di pengaturan HP.");return}
   await nat("LocalNotifications","schedule",{notifications:[{id,title:"Waktunya kembalikan buwuhan",body:n+(m?" · "+rp(m):""),schedule:{at:new Date(t).toISOString(),allowWhileIdle:true}}]})
  }catch(e){await rinfo("Gagal mengatur notifikasi",String(e&&e.message||e));return}}
- rems.push({id,n,m,t});saveR();$("rn").value="";$("rv").value="";$("rd").value="";rview()};
+ rems.push({id,n,m,t});saveR();$("rn").value="";$("rv").value="";$("rd").value="";rview();$("rmd").classList.remove("on")};
 $("rl").onclick=async e=>{const b=e.target.closest("[data-rx]");if(!b)return;const id=+b.dataset.rx,r=rems.find(x=>x.id===id);
  if(!r||!await ask({t:"Tandai selesai?",m:r.n+" akan dihapus dari pengingat.",y:"Selesai",d:false}))return;
  rems=rems.filter(x=>x.id!==id);saveR();if(NAT())nat("LocalNotifications","cancel",{notifications:[{id}]}).catch(()=>{});rview()};
