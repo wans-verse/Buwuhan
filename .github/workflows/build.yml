@@ -29,6 +29,43 @@ jobs:
           npx cap init "Catatan Hajatan" com.hajatan.catatan --web-dir www
           npx cap add android
           sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
+          cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
+          package com.hajatan.catatan;
+          import android.content.ContentValues;
+          import android.net.Uri;
+          import android.os.Build;
+          import android.os.Bundle;
+          import android.os.Environment;
+          import android.provider.MediaStore;
+          import android.webkit.JavascriptInterface;
+          import com.getcapacitor.BridgeActivity;
+          import java.io.OutputStream;
+          public class MainActivity extends BridgeActivity {
+            @Override
+            public void onCreate(Bundle b) {
+              super.onCreate(b);
+              getBridge().getWebView().addJavascriptInterface(new Saver(), "AndroidSave");
+            }
+            class Saver {
+              @JavascriptInterface
+              public String save(String name, String text) {
+                try {
+                  if (Build.VERSION.SDK_INT < 29) return "sdk";
+                  ContentValues v = new ContentValues();
+                  v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                  v.put(MediaStore.MediaColumns.MIME_TYPE, "text/plain");
+                  v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                  Uri u = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                  if (u == null) return "gagal";
+                  OutputStream o = getContentResolver().openOutputStream(u);
+                  o.write(text.getBytes("UTF-8"));
+                  o.close();
+                  return "ok";
+                } catch (Exception e) { return "gagal"; }
+              }
+            }
+          }
+          EOF
           npx cap sync android
 
       - name: Build APK
