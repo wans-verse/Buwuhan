@@ -188,6 +188,9 @@ body.locked #lg{display:flex}
   <button class="srow" id="eve"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></svg><span>Ubah acara ini</span></button>
   <button class="srow" id="th"></button>
   <button class="srow" id="bak"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><span>Ekspor ke file .txt</span></button>
+  <button class="srow" id="csv"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg><span>Ekspor ke Excel (.csv)</span></button>
+  <button class="srow" id="sum"><svg viewBox="0 0 24 24"><path d="M5 21V10M12 21V4M19 21v-7"/></svg><span>Ringkasan</span></button>
+  <button class="srow" id="abk" style="display:none"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-3-6.7M21 4v5h-5"/></svg><span></span></button>
   <button class="srow" id="imp"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg><span>Impor dari file .txt</span></button>
   <button class="srow r" id="out"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Keluar</span></button>
  </div>
@@ -217,11 +220,11 @@ const EK="hajat_events";let events=[];try{events=JSON.parse(localStorage.getItem
 if(!Array.isArray(events)||!events.length)events=[{id:1,n:"Pernikahan",j:"Pernikahan",bk:["Pengantin","Bapak","Ibu"]}];
 let curE;try{curE=localStorage.getItem("hajat_cur")}catch(e){}
 const ev=()=>events.find(x=>x.id==curE)||events[0],tabs=()=>ev().bk;
-const saveE=()=>{try{localStorage.setItem(EK,JSON.stringify(events))}catch(e){}};
+const saveE=()=>{try{localStorage.setItem(EK,JSON.stringify(events))}catch(e){}bkSoon()};
 const OLD={pengantin:"Pengantin",bapak:"Bapak",ibu:"Ibu"};
 data.forEach(d=>{if(!d.e)d.e=events[0].id;d.t=OLD[d.t]||d.t||tabs()[0]});
 let tab=tabs()[0];try{const x=localStorage.getItem("hajat_tab");if(tabs().includes(x))tab=x}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}bkSoon()};
 const rp=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
 let cfRes=null,cfNeed="";
 const CFI={d:'<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></svg>',w:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/></svg>'};
@@ -301,16 +304,18 @@ const close=()=>$("md").classList.remove("on");
 $("add").onclick=()=>open(null);$("cc").onclick=async()=>{if(gv()===snapG||await ask({t:"Buang perubahan?",m:"Isian yang belum disimpan akan hilang.",y:"Buang"}))close()};
 $("md").onclick=e=>{if(e.target.id==="md"&&gv()===snapG)close()};
 $("list").onclick=e=>{const el=e.target.closest(".item");if(el)open(+el.dataset.id)};
-$("sv").onclick=()=>{
+$("sv").onclick=async()=>{
  const n=$("fn").value.trim();if(!n){$("fn").focus();return}
  const o={t:$("fT").value,n,a:$("fa").value.trim(),m:parseInt(($("fm").value||"0").replace(/\D/g,""))||0};
+ const du=data.find(x=>x.e===ev().id&&x.t===o.t&&x.id!==editId&&x.n.trim().toLowerCase()===n.toLowerCase());
+ if(du&&!await ask({t:"Nama sudah ada",m:'"'+du.n+'" sudah tercatat di buku '+o.t+" ("+rp(du.m)+(du.a?", "+du.a:"")+").\nTetap simpan?",y:"Tetap simpan",d:false}))return;
  if(editId){Object.assign(data.find(x=>x.id===editId),o)}else{data.push({id:Date.now(),e:ev().id,...o})}
  tab=o.t;try{localStorage.setItem("hajat_tab",tab)}catch(e){}save();close();render();
 };
 $("dl").onclick=async()=>{const g=data.find(x=>x.id===editId);if(g&&await ask({t:"Hapus tamu?",m:g.n+" ("+rp(g.m)+") akan dihapus.",y:"Hapus"})){data=data.filter(x=>x.id!==editId);save();close();render()}};
 
 function dl(name,txt,type){
- if(window.AndroidSave){try{if(window.AndroidSave.save(name,txt)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download.",y:"OK",d:false,info:true});return}}catch(e){}}
+ if(window.AndroidSave){try{if(window.AndroidSave.put(name,txt,type||"text/plain",false)==="ok"){ask({t:"Tersimpan",m:"File "+name+" ada di folder Download.",y:"OK",d:false,info:true});return}}catch(e){}}
  const C=window.Capacitor;
  if(C&&C.isNativePlatform&&C.isNativePlatform()){
   (async()=>{try{
@@ -320,21 +325,36 @@ function dl(name,txt,type){
   }catch(e){const m=String(e&&e.message||e);if(!/cancel/i.test(m))ask({t:"Gagal ekspor",m,y:"OK",d:false,info:true})}})();return}
  const u=URL.createObjectURL(new Blob([txt],{type})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
 const xm=$("xm"),xn=$("xn");
-$("bak").onclick=()=>{xn.value="Catatan hajatan.txt";xm.classList.add("on");setTimeout(()=>{xn.focus();xn.setSelectionRange(0,xn.value.length-4)},60)};
+let xk="txt";
+const openX=k=>{xk=k;xn.value="Catatan hajatan."+k;xm.classList.add("on");setTimeout(()=>{xn.focus();xn.setSelectionRange(0,xn.value.length-4)},60)};
+$("bak").onclick=()=>openX("txt");$("csv").onclick=()=>openX("csv");
+const csvq=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+function csvText(){const E=ev(),rows=["Kategori,Nama,Alamat,Nominal,Keterangan"];data.filter(d=>d.e===E.id).sort((a,b)=>E.bk.indexOf(a.t)-E.bk.indexOf(b.t)||a.n.localeCompare(b.n,"id")).forEach(d=>rows.push([csvq(d.t),csvq(d.n),csvq(d.a),d.m||0,csvq(d.k)].join(",")));return"\uFEFF"+rows.join("\r\n")}
+$("sum").onclick=()=>{const E=ev(),L=[];let c=0,t=0,mx=null;E.bk.forEach(k=>{const r=data.filter(d=>d.e===E.id&&d.t===k),s=r.reduce((a,b)=>a+b.m,0);c+=r.length;t+=s;r.forEach(d=>{if(!mx||d.m>mx.m)mx=d});L.push(k+": "+r.length+" tamu, "+rp(s))});
+ L.push("");L.push("Total: "+c+" tamu, "+rp(t));if(c){L.push("Rata-rata: "+rp(Math.round(t/c)));L.push("Terbesar: "+mx.n+" ("+rp(mx.m)+")")}
+ ask({t:"Ringkasan "+E.n,m:L.join("\n"),y:"Tutup",d:false,info:true})};
+const abOn=()=>{try{return localStorage.getItem("hajat_ab")!=="0"}catch(e){return true}};
+const abSet=()=>{$("abk").querySelector("span").textContent="Cadangan otomatis: "+(abOn()?"Aktif":"Mati")};
+if(window.AndroidSave){$("abk").style.display="flex";abSet()}
+$("abk").onclick=()=>{try{localStorage.setItem("hajat_ab",abOn()?"0":"1")}catch(e){}abSet();if(abOn())bkSoon()};
+let bkT;function bkSoon(){if(!window.AndroidSave||!abOn())return;clearTimeout(bkT);bkT=setTimeout(()=>{try{window.AndroidSave.put("Cadangan otomatis Catatan hajatan.txt",JSON.stringify({events,data,rems}),"text/plain",true)}catch(e){}},4000)}
+let IR=[];
+function schedRem(o){if(!NAT()||o.t<=Date.now())return;(async()=>{try{const p=await nat("LocalNotifications","requestPermissions");if(p.display!=="granted")return;await nat("LocalNotifications","schedule",{notifications:[{id:o.id,title:"Waktunya kembalikan buwuhan",body:o.n+(o.m?" · "+rp(o.m):""),schedule:{at:new Date(o.t).toISOString(),allowWhileIdle:true}}]})}catch(e){}})()}
+function importRems(){const a=IR;IR=[];let n=0;a.forEach(r=>{if(!r||!r.n||!r.t)return;if(rems.some(x=>x.n===r.n&&x.t===+r.t&&(x.m||0)===(+r.m||0)))return;let id=Math.floor(Date.now()/1000)+n;while(rems.some(x=>x.id===id))id++;const o={id,n:r.n,m:+r.m||0,t:+r.t};rems.push(o);n++;schedRem(o)});if(n){saveR();rview()}return n}
 $("xc").onclick=()=>xm.classList.remove("on");
-$("xs").onclick=()=>{let n=xn.value.trim().replace(/[\\\/:*?"<>|]/g,"").replace(/\.txt$/i,"").trim()||"Catatan hajatan";xm.classList.remove("on");dl(n+".txt",JSON.stringify({events,data}),"text/plain")};
+$("xs").onclick=()=>{let n=xn.value.trim().replace(/[\\\/:*?"<>|]/g,"").replace(/\.(txt|csv)$/i,"").trim()||"Catatan hajatan";xm.classList.remove("on");if(xk==="csv")dl(n+".csv",csvText(),"text/csv");else dl(n+".txt",JSON.stringify({events,data,rems}),"text/plain")};
 xn.addEventListener("keydown",e=>{if(e.key==="Enter")$("xs").click()});
 $("imp").onclick=()=>$("file").click();
 $("file").onchange=e=>{
  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
  rd.onload=()=>{try{
   let arr=[];
-  if(/^[\s\uFEFF]*[\[{]/.test(rd.result)){const j=JSON.parse(rd.result.replace(/^\uFEFF/,""));if(Array.isArray(j))arr=j;else{const mp={};(j.events||[]).forEach((x,i)=>{const ex=events.find(z=>z.n===x.n&&z.j===x.j);if(ex){mp[x.id]=ex.id;(x.bk||[]).forEach(b=>{if(!ex.bk.includes(b)&&ex.bk.length<6)ex.bk.push(b)})}else{const id=Date.now()+1000+i;mp[x.id]=id;events.push({id,n:x.n,j:x.j,bk:x.bk})}});arr=(j.data||[]).map(x=>({...x,_e:mp[x.e]}))}}
+  if(/^[\s\uFEFF]*[\[{]/.test(rd.result)){const j=JSON.parse(rd.result.replace(/^\uFEFF/,""));if(Array.isArray(j))arr=j;else{IR=Array.isArray(j.rems)?j.rems:[];const mp={};(j.events||[]).forEach((x,i)=>{const ex=events.find(z=>z.n===x.n&&z.j===x.j);if(ex){mp[x.id]=ex.id;(x.bk||[]).forEach(b=>{if(!ex.bk.includes(b)&&ex.bk.length<6)ex.bk.push(b)})}else{const id=Date.now()+1000+i;mp[x.id]=id;events.push({id,n:x.n,j:x.j,bk:x.bk})}});arr=(j.data||[]).map(x=>({...x,_e:mp[x.e]}))}}
   else{const hk=/^"?kategori/i.test(rd.result.trim());rd.result.split(/\r?\n/).slice(1).forEach(l=>{if(!l.trim())return;const c=(l.match(/("([^"]|"")*"|[^,]*)(,|$)/g)||[]).map(x=>x.replace(/,$/,"").replace(/^"|"$/g,"").replace(/""/g,'"'));{const o=hk?1:0;arr.push({t:hk?c[0]:tab,n:c[o],a:c[o+1],m:parseInt(c[o+2])||0,k:c[o+3]||""})}})}
   const base=Date.now();let ok=0,sk=0;arr.filter(x=>x.n).forEach((x,i)=>{const E=events.find(z=>z.id===x._e)||ev(),t=E.bk.find(b=>b.toLowerCase()===String(x.t||"").toLowerCase())||(E===ev()?tab:E.bk[0]),m=+x.m||0,a=x.a||"";
    if(data.some(d=>d.e===E.id&&d.t===t&&d.n===x.n&&(d.a||"")===a&&d.m===m)){sk++;return}
    data.push({id:base+i,e:E.id,n:x.n,a,m,k:x.k||"",t});ok++});
-  save();saveE();render();ask({t:"Impor selesai",m:ok+" data masuk"+(sk?", "+sk+" dilewati (sudah ada)":""),y:"OK",d:false,info:true})}catch(err){ask({t:"Gagal impor",m:"File tidak valid.",y:"OK",d:false,info:true})}};
+  save();saveE();const nr=importRems();render();ask({t:"Impor selesai",m:ok+" data masuk"+(nr?", "+nr+" pengingat":"")+(sk?", "+sk+" dilewati (sudah ada)":""),y:"OK",d:false,info:true})}catch(err){ask({t:"Gagal impor",m:"File tidak valid.",y:"OK",d:false,info:true})}};
  rd.readAsText(f);e.target.value="";
 };
 
@@ -361,7 +381,7 @@ $("sk").onclick=()=>unlock(false);
 const stc=()=>$("st").classList.remove("on");
 $("gear").onclick=()=>$("st").classList.add("on");
 $("stc").onclick=stc;$("st").onclick=e=>{if(e.target.id==="st")stc()};
-["bak","imp","out"].forEach(i=>$(i).addEventListener("click",stc));
+["bak","csv","sum","imp","out"].forEach(i=>$(i).addEventListener("click",stc));
 const PRE={Pernikahan:["Pengantin","Bapak","Ibu"],Pitonan:["Bapak","Ibu"],Khitan:["Anak","Bapak","Ibu"],Lainnya:["Bapak","Ibu"]};
 const BASE=["Bapak","Ibu"];
 function renderBk(sel){const OPTS=evJ==="Pernikahan"?["Pengantin",...BASE]:evJ==="Khitan"?["Anak",...BASE]:BASE;const all=[...OPTS,...sel.filter(x=>!OPTS.includes(x))];$("eb").innerHTML=all.map(k=>'<label class="ck"><input type="checkbox" value="'+esc(k)+'"'+(sel.includes(k)?" checked":"")+'><span>'+esc(k)+'</span></label>').join("")}
@@ -392,7 +412,7 @@ async function delEv(id){const E=events.find(x=>x.id===id);if(!E)return false;
 $("edl").onclick=async()=>{if(await delEv(evId))ecl()};
 $("lr").onclick=async()=>{if(await ask({t:"Reset akun?",m:"Semua data tamu di perangkat ini akan dihapus permanen. Ketik RESET untuk melanjutkan.",y:"Hapus semua",need:"RESET"})){try{localStorage.removeItem(AK);localStorage.removeItem(KEY)}catch(e){}acc=null;data=[];$("lu").value="";lock()}};
 const RK="hajat_rem";let rems=[];try{rems=JSON.parse(localStorage.getItem(RK)||"[]")}catch(e){}if(!Array.isArray(rems))rems=[];
-const saveR=()=>{try{localStorage.setItem(RK,JSON.stringify(rems))}catch(e){}};
+const saveR=()=>{try{localStorage.setItem(RK,JSON.stringify(rems))}catch(e){}bkSoon()};
 const NAT=()=>{const C=window.Capacitor;return!!(C&&C.isNativePlatform&&C.isNativePlatform())};
 const nat=(p,m,o)=>{const C=window.Capacitor;return C.nativePromise?C.nativePromise(p,m,o):C.Plugins[p][m](o)};
 const fdt=t=>new Date(t).toLocaleString("id-ID",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
