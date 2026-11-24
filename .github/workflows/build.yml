@@ -30,6 +30,11 @@ jobs:
           npx cap add android
           unzip -oq ikon*.zip -d ikon
           cp -r ikon/res/. android/app/src/main/res/
+          mkdir -p android/app/src/main/res/drawable
+          cat > android/app/src/main/res/drawable/splash_kosong.xml <<'EOF'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="#00000000"/></shape>
+          EOF
+          sed -i '/AppTheme.NoActionBarLaunch/a <item name="windowSplashScreenAnimatedIcon">@drawable/splash_kosong</item><item name="windowSplashScreenBackground">#f2f2f7</item>' android/app/src/main/res/values/styles.xml
           sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
           cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
           package com.hajatan.catatan;
