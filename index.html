@@ -399,7 +399,6 @@ header{position:sticky;top:0;z-index:8}
  <input type="text" id="wn" autocomplete="off" maxlength="60">
  <div class="hint" id="wh"></div>
  <button class="btn" id="wgo">Mulai</button>
- <div class="hint" style="margin:18px 0 0">Semua data tersimpan di HP ini.</div>
 </div></div>
 <div class="wrap">
 <header>
@@ -479,7 +478,7 @@ let PER=50;try{const v=parseInt(localStorage.getItem("hajat_per"),10);if(v>=1&&v
 let data=[],page=0,editId=null;
 try{data=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){data=[]}
 const EK="hajat_events";let events=[];try{events=JSON.parse(localStorage.getItem(EK)||"[]")}catch(e){}
-if(!Array.isArray(events)||!events.length)events=[{id:1,n:"Pernikahan",j:"Pernikahan",bk:["Pengantin","Bapak","Ibu"]}];
+if(!Array.isArray(events)||!events.length)events=[{id:1,n:"Pernikahan",j:"Pernikahan",bk:["Pengantin Pria","Pengantin Wanita","Bapak","Ibu"]}];
 let curE;try{curE=localStorage.getItem("hajat_cur")}catch(e){}
 const ev=()=>events.find(x=>x.id==curE)||events[0],tabs=()=>ev().bk;
 const saveE=()=>{try{localStorage.setItem(EK,JSON.stringify(events))}catch(e){}};
@@ -613,7 +612,7 @@ $("sum").onclick=()=>{
  const cp=n=>n>=1e6?(Math.round(n/1e5)/10).toString().replace(".",",")+" jt":n>=1e3?Math.round(n/1e3)+" rb":String(n);
  const paid=all.filter(d=>d.m>0),mx=paid.reduce((a,b)=>!a||b.m>a.m?b:a,null),mn=paid.reduce((a,b)=>!a||b.m<a.m?b:a,null);
  const COL=["#3a37d6","#ffa63d","#ff5d8f","#18b8a6","#9b6bff"];
- let h='<div class="smh"><div class="sm-h">Total uang · '+esc(E.n)+'</div><div class="sm-big">'+rp(t)+'</div><div class="smf">'+c+' tamu'+(paid.length?' · rata-rata '+rp(Math.round(t/paid.length)):'')+'</div></div>';
+ let h='<div class="smh"><div class="sm-h">Total uang · '+esc(E.n)+'</div><div class="sm-big">'+rp(t)+'</div><div class="smf">'+c+' tamu'+'</div></div>';
  if(!c)h+='<div class="smc"><div class="hint" style="margin:0">Belum ada data.</div></div>';
  else{
   if(paid.length)h+='<div class="smk"><div><small>Tertinggi</small><b>'+rp(mx.m)+'</b><span>'+esc(mx.n)+'</span></div><div><small>Terendah</small><b>'+rp(mn.m)+'</b><span>'+esc(mn.n)+'</span></div></div>';
@@ -660,9 +659,9 @@ $("file").onchange=e=>{
 const stc=()=>$("st").classList.remove("on");
 $("gear").onclick=()=>$("st").classList.add("on");
 $("stc").onclick=stc;$("st").onclick=e=>{if(e.target.id==="st")stc()};
-const PRE={Pernikahan:["Pengantin","Bapak","Ibu"],Pitonan:["Bapak","Ibu"],Khitan:["Anak","Bapak","Ibu"],Lainnya:["Bapak","Ibu"]};
+const PRE={Pernikahan:["Pengantin Pria","Pengantin Wanita","Bapak","Ibu"],Pitonan:["Bapak","Ibu"],Khitan:["Anak","Bapak","Ibu"],Lainnya:["Bapak","Ibu"]};
 const BASE=["Bapak","Ibu"];
-function renderBk(sel){const OPTS=evJ==="Pernikahan"?["Pengantin",...BASE]:evJ==="Khitan"?["Anak",...BASE]:BASE;const all=[...OPTS,...sel.filter(x=>!OPTS.includes(x))];$("eb").innerHTML=all.map(k=>'<label class="ck"><input type="checkbox" value="'+esc(k)+'"'+(sel.includes(k)?" checked":"")+'><span>'+esc(k)+'</span></label>').join("")}
+function renderBk(sel){const OPTS=evJ==="Pernikahan"?["Pengantin Pria","Pengantin Wanita",...BASE]:evJ==="Khitan"?["Anak",...BASE]:BASE;const all=[...OPTS,...sel.filter(x=>!OPTS.includes(x))];$("eb").innerHTML=all.map(k=>'<label class="ck"><input type="checkbox" value="'+esc(k)+'"'+(sel.includes(k)?" checked":"")+'><span>'+esc(k)+'</span></label>').join("")}
 let evId=null,evJ="Pernikahan";
 const jset=()=>document.querySelectorAll("#ej button").forEach(b=>b.classList.toggle("on",b.dataset.j===evJ));
 function openEv(id){evId=id;const E=events.find(x=>x.id===id);evJ=E?E.j:"Pernikahan";$("emt").textContent=id?"Ubah Acara":"Acara Baru";$("en").value=E?E.n:"";renderBk(E?E.bk:PRE[evJ]);$("edl").style.display=id?"inline-flex":"none";jset();$("em").classList.add("on");snapE=evv()}
@@ -746,7 +745,7 @@ $("sb").onclick=e=>{e.stopPropagation();const m=$("sm"),o=m.classList.contains("
 $("rst").onclick=async()=>{
  if(!await ask({t:"Hapus semua data?",m:"Semua acara, tamu, dan pengingat akan dihapus permanen dan tidak bisa dikembalikan. Sebaiknya cadangkan dulu.",y:"Hapus",need:"RESET"}))return;
  if(NAT()&&rems.length){try{await nat("LocalNotifications","cancel",{notifications:rems.map(r=>({id:r.id}))})}catch(e){}}
- data=[];rems=[];events=[{id:Date.now(),n:"Pernikahan",j:"Pernikahan",bk:["Pengantin","Bapak","Ibu"]}];
+ data=[];rems=[];events=[{id:Date.now(),n:"Pernikahan",j:"Pernikahan",bk:["Pengantin Pria","Pengantin Wanita","Bapak","Ibu"]}];
  curE=events[0].id;tab=events[0].bk[0];page=0;$("q").value="";
  save();saveE();saveR();
  try{localStorage.setItem("hajat_cur",curE);localStorage.removeItem("hajat_tab")}catch(e){}
