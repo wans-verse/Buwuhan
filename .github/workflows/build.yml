@@ -11,102 +11,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 17
 
-      - name: Siapkan proyek Capacitor
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Ekstrak proyek
+        run: unzip -oq buwuhan.zip
+
+      - name: Pasang ikon (kalau ada)
         run: |
-          npm init -y
-          npm i @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7 @capacitor/filesystem@7 @capacitor/share@7 @capacitor/local-notifications@7
-          mkdir www
-          cp index.html www/index.html
-          npx cap init "Buwuhan" com.hajatan.catatan --web-dir www
-          npx cap add android
-          unzip -oq ikon*.zip -d ikon
-          cp -r ikon/res/. android/app/src/main/res/
-          mkdir -p android/app/src/main/res/drawable
-          cat > android/app/src/main/res/drawable/splash_kosong.xml <<'EOF'
-          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="#00000000"/></shape>
-          EOF
-          sed -i '/AppTheme.NoActionBarLaunch/a <item name="windowSplashScreenAnimatedIcon">@drawable/splash_kosong</item><item name="windowSplashScreenBackground">#f2f2f7</item>' android/app/src/main/res/values/styles.xml
-          sed -i 's#<application#<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/><uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/><application#' android/app/src/main/AndroidManifest.xml
-          cat > android/app/src/main/java/com/hajatan/catatan/MainActivity.java <<'EOF'
-          package com.hajatan.catatan;
-          import android.content.ContentResolver;
-          import android.content.ContentUris;
-          import android.content.ContentValues;
-          import android.database.Cursor;
-          import android.net.Uri;
-          import android.os.Build;
-          import android.os.Bundle;
-          import android.os.Environment;
-          import android.provider.MediaStore;
-          import android.webkit.JavascriptInterface;
-          import com.getcapacitor.BridgeActivity;
-          import java.io.OutputStream;
-          public class MainActivity extends BridgeActivity {
-            @Override
-            public void onCreate(Bundle b) {
-              super.onCreate(b);
-              getBridge().getWebView().addJavascriptInterface(new Saver(), "AndroidSave");
-            }
-            class Saver {
-              @JavascriptInterface
-              public String put(String name, String text, String mime, boolean over) {
-                try {
-                  if (Build.VERSION.SDK_INT < 29) return "sdk";
-                  ContentResolver cr = getContentResolver();
-                  Uri base = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
-                  Uri u = null;
-                  if (over) {
-                    Cursor c = cr.query(base, new String[]{MediaStore.MediaColumns._ID},
-                      MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + "=?",
-                      new String[]{name, Environment.DIRECTORY_DOWNLOADS + "/Catatan Hajatan/"}, null);
-                    if (c != null) {
-                      if (c.moveToFirst()) u = ContentUris.withAppendedId(base, c.getLong(0));
-                      c.close();
-                    }
-                  }
-                  if (u == null) {
-                    ContentValues v = new ContentValues();
-                    v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-                    v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-                    v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Catatan Hajatan");
-                    u = cr.insert(base, v);
-                  }
-                  if (u == null) return "gagal";
-                  OutputStream o = cr.openOutputStream(u, "wt");
-                  o.write(text.getBytes("UTF-8"));
-                  o.close();
-                  return "ok";
-                } catch (Exception e) { return "gagal"; }
-              }
-            }
-          }
-          EOF
-          npx cap sync android
+          if ls ikon*.zip >/dev/null 2>&1; then
+            unzip -oq ikon*.zip -d ikon
+            mkdir -p app/src/main/res
+            cp -r ikon/res/. app/src/main/res/
+            if ls app/src/main/res/mipmap*/ic_launcher.* >/dev/null 2>&1; then
+              sed -i 's#<application#<application android:icon="@mipmap/ic_launcher"#' app/src/main/AndroidManifest.xml
+            fi
+            if grep -rq '@color/ic_launcher_background' app/src/main/res && ! grep -rq 'name="ic_launcher_background"' app/src/main/res; then
+              mkdir -p app/src/main/res/values
+              echo '<resources><color name="ic_launcher_background">#FFFFFF</color></resources>' > app/src/main/res/values/ikon_warna.xml
+            fi
+          fi
 
       - name: Pakai keystore tetap dan naikkan versionCode
         run: |
           mkdir -p ~/.android
           cp debug.keystore ~/.android/debug.keystore
-          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/" android/app/build.gradle
-          grep -n "versionCode" android/app/build.gradle
+          sed -i "s/versionCode = 1$/versionCode = ${{ github.run_number }}/" app/build.gradle.kts
+          grep -n "versionCode" app/build.gradle.kts
 
       - name: Build APK
-        working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: gradle assembleDebug --no-daemon
 
       - name: Ganti nama file APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk Buwuhan.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk Buwuhan.apk
 
       - uses: actions/upload-artifact@v4
         with:
